@@ -19,6 +19,9 @@ import android.widget.Toast;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+    
+    //Todo: Implement a timer to capture traffic
+    //Todo: Implement Firebase to sync this data online
 
     // Used for logging on logcat
     private static final String TAG = "MainActivity";
