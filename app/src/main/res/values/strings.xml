@@ -9,4 +9,6 @@
         <item>Fastest</item>
     </string-array>
     <string name="spinnerText">Refresh Rate</string>
+    <string name="editTextTitle">Please enter number of seconds to test</string>
+    <string name="secondsHint">Seconds</string>
 </resources>
