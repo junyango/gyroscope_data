@@ -11,4 +11,6 @@
     <string name="spinnerText">Refresh Rate</string>
     <string name="editTextTitle">Please enter number of seconds to test</string>
     <string name="secondsHint">Seconds</string>
+    <string name="uploadBtn">Upload</string>
+    <string name="selectBtn">Select File</string>
 </resources>

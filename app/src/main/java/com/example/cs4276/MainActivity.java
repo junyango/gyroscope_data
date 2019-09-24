@@ -1,9 +1,13 @@
 package com.example.cs4276;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -21,7 +25,18 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Locale;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +44,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Used for logging on logcat
     private static final String TAG = "MainActivity";
+    private static final int PICK_FILE = 288;
+
+    // Try to write to a file
+    FileWriter writer;
+    String fileDir;
 
     // Variables for Sensors
     private TextView x_gyro, y_gyro, z_gyro;
@@ -39,7 +59,8 @@ public class MainActivity extends AppCompatActivity {
     // Variables for XML elements UI display
     private Button startBtn;
     private Spinner spinner;
-    private boolean flagBtn;
+    private boolean isStartPressed;
+    private boolean isSetPressed;
     private EditText mEditTextInput;
     private Button mButtonSet;
 
@@ -49,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
     private long mStartTimeInMillis;
     private long mTimeLeftInMillis;
 
+    // Firebase storage
+    private StorageReference mStorageRef;
+    private Button selectBtn;
+    private Button sendBtn;
+    private Uri filePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
         spinner = findViewById(R.id.refresh_spinner);
         startBtn = findViewById(R.id.startBtn);
 
+        // Firebase storage
+        mStorageRef = FirebaseStorage.getInstance("gs://cs4276-6a376.appspot.com").getReference();
+
         mButtonSet.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -80,9 +109,11 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Please enter positive number", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                isSetPressed = true;
                 setTimer(millisInput);
                 mEditTextInput.setText("");
                 closeKeyboard();
+
 
             }
         });
@@ -101,11 +132,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 Sensor sensor = event.sensor;
-                if (sensor.getType() == Sensor.TYPE_GYROSCOPE && flagBtn && mTimerRunning) {
+                if (sensor.getType() == Sensor.TYPE_GYROSCOPE && isStartPressed && mTimerRunning && isSetPressed) {
                     Log.d(TAG, "onSensorChanged: X: " + event.values[0] + "Y: " + event.values[1] + "Z: " + event.values[2]);
                     x_gyro.setText("X: " + event.values[0]);
                     y_gyro.setText("Y: " + event.values[1]);
                     z_gyro.setText("Z: " + event.values[2]);
+                    try {
+                        writer.write(String.format("GYRO; %f; %f; %f\n", event.values[0], event.values[1], event.values[2]));
+                        writer.flush();
+                    } catch (IOException io) {
+                        Log.d(TAG, "Input output exception!" + io);
+                    }
                 } else {
                     // Display error. Click on start button to use
                     x_gyro.setText("");
@@ -124,12 +161,20 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (flagBtn && mTimerRunning) {
-                    flagBtn = false;
-                    pauseTimer();
-                } else {
-                    flagBtn = true;
+                if (!(isStartPressed && mTimerRunning && isSetPressed)) {
+                    Log.d(TAG, "Writing to " + getStorageDir());
+                    try {
+                        fileDir = getStorageDir() + "/gyro_" + System.currentTimeMillis() + ".csv";
+                        Log.d(TAG, "This is the filedir to be saved: " + fileDir);
+                        writer = new FileWriter(new File(fileDir));
+                        Log.d(TAG, "Successfully created writer");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    isStartPressed = true;
                     startTimer();
+                    mButtonSet.setEnabled(false);
+                    startBtn.setEnabled(false);
                 }
 
             }
@@ -170,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
     private void resetTimer() {
         mTimeLeftInMillis = mStartTimeInMillis;
         updateCountDownText();
@@ -190,15 +236,50 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 mTimerRunning = false;
+                isSetPressed = false;
+                isStartPressed = false;
+                startBtn.setText("Start");
+                mButtonSet.setEnabled(true);
+                startBtn.setEnabled(true);
+                try {
+                    writer.close();
+                } catch (IOException io) {
+                    Log.e(TAG, "Error in IO when closing writer");
+                }
+                Log.d(TAG, "This is my filedir " + fileDir);
+                Uri file = Uri.fromFile(new File(fileDir));
+                StorageReference csvRef = mStorageRef.child("csv/" + file.getLastPathSegment());
+                final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setTitle("Progress...");
+
+                csvRef.putFile(file)
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception) {
+                                // Handle unsuccessful uploads
+                                Toast.makeText(MainActivity.this, "Not Successful", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                                //calculating progress percentage
+                                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+
+                                //displaying percentage in progress dialog
+                                progressDialog.setMessage("Uploaded " + (int)(progress) + "%...");
+                            }
+                        });
             }
         }.start();
 
         mTimerRunning = true;
-    }
-
-    private void pauseTimer() {
-        mCountDownTimer.cancel();
-        mTimerRunning = false;
     }
 
     private void updateCountDownText() {
@@ -229,5 +310,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(gyroscopeEventListener);
+    }
+
+    private String getStorageDir() {
+        return this.getExternalFilesDir(null).getAbsolutePath();
     }
 }

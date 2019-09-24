@@ -43,14 +43,14 @@
         android:id="@+id/spinnerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:padding="10dp"
         android:text="@string/spinnerText"
         android:textColor="@color/colorPrimaryDark"/>
 
     <Spinner
         android:id="@+id/refresh_spinner"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -58,7 +58,7 @@
         android:id="@+id/editText_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="30dp"
         android:padding="10dp"
         android:text="@string/editTextTitle"
         android:textColor="@color/colorPrimaryDark"/>
@@ -87,14 +87,15 @@
         android:textColor="@android:color/black"
         android:text="00:00"
         android:textSize="40sp"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="30dp"/>
 
     <Button
         android:id="@+id/startBtn"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:text="@string/startBtn"/>
+        android:layout_marginTop="30dp"
+        android:layout_gravity="center"
+        android:text="@string/startBtn" />
 
 </LinearLayout>
 
