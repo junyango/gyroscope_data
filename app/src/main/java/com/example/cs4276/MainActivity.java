@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.os.CountDownTimer;
+import android.os.SystemClock;
 import android.util.Log;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -37,10 +38,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Locale;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 public class MainActivity extends AppCompatActivity {
-
-    //Todo: Implement Firebase to sync this data online
 
     // Used for logging on logcat
     private static final String TAG = "MainActivity";
@@ -137,8 +140,9 @@ public class MainActivity extends AppCompatActivity {
                     x_gyro.setText("X: " + event.values[0]);
                     y_gyro.setText("Y: " + event.values[1]);
                     z_gyro.setText("Z: " + event.values[2]);
+
                     try {
-                        writer.write(String.format("GYRO; %f; %f; %f\n", event.values[0], event.values[1], event.values[2]));
+                        writer.write(String.format("%s, %f, %f, %f\n", SystemClock.elapsedRealtimeNanos(), event.values[0], event.values[1], event.values[2]));
                         writer.flush();
                     } catch (IOException io) {
                         Log.d(TAG, "Input output exception!" + io);
@@ -163,8 +167,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!(isStartPressed && mTimerRunning && isSetPressed)) {
                     Log.d(TAG, "Writing to " + getStorageDir());
+                    // Creating date format
+                    DateFormat simple = new SimpleDateFormat("ddMMyyyy_HHmmss");
+                    Date currDate = new Date(System.currentTimeMillis());
                     try {
-                        fileDir = getStorageDir() + "/gyro_" + System.currentTimeMillis() + ".csv";
+                        fileDir = getStorageDir() + "/gyro_" + simple.format(currDate) + ".csv";
                         Log.d(TAG, "This is the filedir to be saved: " + fileDir);
                         writer = new FileWriter(new File(fileDir));
                         Log.d(TAG, "Successfully created writer");
@@ -248,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "This is my filedir " + fileDir);
                 Uri file = Uri.fromFile(new File(fileDir));
-                StorageReference csvRef = mStorageRef.child("csv/" + file.getLastPathSegment());
+                StorageReference csvRef = mStorageRef.child("black_huawei_normal/" + file.getLastPathSegment());
                 final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setTitle("Progress...");
 
