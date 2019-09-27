@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Used for logging on logcat
     private static final String TAG = "MainActivity";
-    private static final int PICK_FILE = 288;
 
     // Try to write to a file
     FileWriter writer;
@@ -264,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                 Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss();
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -281,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 //displaying percentage in progress dialog
                                 progressDialog.setMessage("Uploaded " + (int)(progress) + "%...");
+                                progressDialog.show();
                             }
                         });
             }
