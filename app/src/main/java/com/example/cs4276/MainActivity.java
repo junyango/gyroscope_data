@@ -46,7 +46,9 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity {
 
     // Used for logging on logcat
+    private static final String frequency = "100hz";
     private static final String TAG = "MainActivity";
+    private static final String phone = "mi_max";
 
     // Try to write to a file
     FileWriter writer;
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                     DateFormat simple = new SimpleDateFormat("ddMMyyyy_HHmmss");
                     Date currDate = new Date(System.currentTimeMillis());
                     try {
-                        fileDir = getStorageDir() + "/gyro_100hz" + simple.format(currDate) + ".csv";
+                        fileDir = getStorageDir() + "/gyro_" + frequency + "_" + simple.format(currDate) + ".csv";
                         Log.d(TAG, "This is the filedir to be saved: " + fileDir);
                         writer = new FileWriter(new File(fileDir));
                         Log.d(TAG, "Successfully created writer");
@@ -254,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "This is my filedir " + fileDir);
                 Uri file = Uri.fromFile(new File(fileDir));
-                StorageReference csvRef = mStorageRef.child("blue_huawei/" + "100hz/" + file.getLastPathSegment());
+                StorageReference csvRef = mStorageRef.child(phone + "/" + frequency + "/" + file.getLastPathSegment());
                 final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setTitle("Progress...");
 
@@ -280,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                                 double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
 
                                 //displaying percentage in progress dialog
-                                progressDialog.setMessage("Uploaded " + (int)(progress) + "%...");
+                                progressDialog.setMessage("Uploaded " + (int) (progress) + "%...");
                                 progressDialog.show();
                             }
                         });
