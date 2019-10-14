@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                     DateFormat simple = new SimpleDateFormat("ddMMyyyy_HHmmss");
                     Date currDate = new Date(System.currentTimeMillis());
                     try {
-                        fileDir = getStorageDir() + "/gyro_" + simple.format(currDate) + ".csv";
+                        fileDir = getStorageDir() + "/gyro_100hz" + simple.format(currDate) + ".csv";
                         Log.d(TAG, "This is the filedir to be saved: " + fileDir);
                         writer = new FileWriter(new File(fileDir));
                         Log.d(TAG, "Successfully created writer");
@@ -206,8 +206,8 @@ public class MainActivity extends AppCompatActivity {
                         sensorManager.registerListener(gyroscopeEventListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL);
                     case "Game": // 50hz
                         sensorManager.registerListener(gyroscopeEventListener, gyroscope, SensorManager.SENSOR_DELAY_GAME);
-                    case "Fastest": // 0 Microseconds delay
-                        sensorManager.registerListener(gyroscopeEventListener, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
+                    case "Fastest": // 100hz
+                        sensorManager.registerListener(gyroscopeEventListener, gyroscope, 10000);
                     default:
                         sensorManager.registerListener(gyroscopeEventListener, gyroscope, SensorManager.SENSOR_DELAY_UI);
                 }
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "This is my filedir " + fileDir);
                 Uri file = Uri.fromFile(new File(fileDir));
-                StorageReference csvRef = mStorageRef.child("black_huawei_normal/" + file.getLastPathSegment());
+                StorageReference csvRef = mStorageRef.child("blue_huawei/" + "100hz/" + file.getLastPathSegment());
                 final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setTitle("Progress...");
 
